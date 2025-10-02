@@ -5,6 +5,7 @@ const { JWT } = require('google-auth-library');
 const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 const nodemailer = require('nodemailer');
 const { Dropbox } = require('dropbox');
 const multer = require('multer');
@@ -23,6 +24,7 @@ try {
             SPREADSHEET_ID: process.env.SPREADSHEET_ID,
             YOUR_EMAIL_ADDRESS: process.env.YOUR_EMAIL_ADDRESS,
             YOUR_EMAIL_APP_PASSWORD: process.env.YOUR_EMAIL_APP_PASSWORD,
+            BREVO_API_KEY: process.env.BREVO_API_KEY,
         };
         serviceAccountCreds = JSON.parse(process.env.SERVICE_ACCOUNT_CREDS_JSON || '{}');
     } else {
@@ -148,18 +150,38 @@ app.post('/api/submit',
         await Promise.all(uploadPromises);
         console.log(`✅ All files successfully uploaded.`);
 
-        // --- Step 4: Send confirmation email ---
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: { user: config.YOUR_EMAIL_ADDRESS, pass: config.YOUR_EMAIL_APP_PASSWORD }
-        });
-        await transporter.sendMail({
-            from: `"RIC 2025 Committee" <${config.YOUR_EMAIL_ADDRESS}>`,
-            to: primaryContactEmail,
-            subject: `✅ Submission Confirmed: ${applicationId}`,
-            html: `<h2>Submission Confirmation</h2><p>Thank you for your submission for the abstract titled "<strong>${title}</strong>".</p><p>We have successfully received and archived all your files.</p><p>Your unique Submission ID is: <strong>${submissionId}</strong>.</p><hr><p><em>RIC 2025 </em></p>`,
-        });
-        console.log("✅ Confirmation email sent.");
+        // --- CHANGED: Step 4: Send confirmation email using Brevo ---
+        try {
+            const defaultClient = SibApiV3Sdk.ApiClient.instance;
+            const apiKey = defaultClient.authentications['api-key'];
+            apiKey.apiKey = config.BREVO_API_KEY;
+            
+            const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+            
+            const sendSmtpEmail = {
+                sender: { 
+                    email: config.YOUR_EMAIL_ADDRESS, 
+                    name: "RIC 2025 Committee" 
+                },
+                to: [{ email: primaryContactEmail }],
+                subject: `✅ Submission Confirmed: ${applicationId}`,
+                htmlContent: `
+                    <h2>Submission Confirmation</h2>
+                    <p>Thank you for your submission for the abstract titled "<strong>${title}</strong>".</p>
+                    <p>We have successfully received and archived all your files.</p>
+                    <p>Your unique Submission ID is: <strong>${submissionId}</strong>.</p>
+                    <hr>
+                    <p><em>RIC 2025</em></p>
+                `
+            };
+            
+            await apiInstance.sendTransacEmail(sendSmtpEmail);
+            console.log("✅ Confirmation email sent via Brevo.");
+            
+        } catch (emailError) {
+            console.error("⚠️ Email sending failed (non-critical):", emailError.message);
+            // Don't fail the entire submission if email fails
+        }
         
         res.json({ success: true, submissionId });
 
@@ -174,6 +196,32 @@ app.post('/api/submit',
         }
     }
 });
+//         // --- Step 4: Send confirmation email ---
+//         const transporter = nodemailer.createTransport({
+//             service: 'gmail',
+//             auth: { user: config.YOUR_EMAIL_ADDRESS, pass: config.YOUR_EMAIL_APP_PASSWORD }
+//         });
+//         await transporter.sendMail({
+//             from: `"RIC 2025 Committee" <${config.YOUR_EMAIL_ADDRESS}>`,
+//             to: primaryContactEmail,
+//             subject: `✅ Submission Confirmed: ${applicationId}`,
+//             html: `<h2>Submission Confirmation</h2><p>Thank you for your submission for the abstract titled "<strong>${title}</strong>".</p><p>We have successfully received and archived all your files.</p><p>Your unique Submission ID is: <strong>${submissionId}</strong>.</p><hr><p><em>RIC 2025 </em></p>`,
+//         });
+//         console.log("✅ Confirmation email sent.");
+        
+//         res.json({ success: true, submissionId });
+
+//     } catch (error) {
+//         console.error("--- DETAILED SUBMISSION CRASH ---", error);
+//         res.status(500).json({ error: 'A critical error occurred during submission.' });
+//     } finally {
+//         // --- Step 5: Clean up temporary file ---
+//         if (generatedPdfPath && fs.existsSync(generatedPdfPath)) {
+//             fs.unlinkSync(generatedPdfPath);
+//             console.log("✅ Temporary generated PDF cleaned up.");
+//         }
+//     }
+// });
 
 // Serve static files
 app.use(express.static(path.join(__dirname)));
