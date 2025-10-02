@@ -1,0 +1,16 @@
+Ignore the node_modules directory
+node_modules/
+
+--- IMPORTANT ---
+Ignore the configuration file that contains all secrets
+config.js
+
+Ignore user-submitted files and data logs
+uploads/
+submissions.csv
+
+Ignore system files
+desktop.ini
+test-dropbox.js
+.vercel
+awesome-lotus-411218-0809dea3b1ae.json

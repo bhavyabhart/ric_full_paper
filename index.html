@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RIC 2025 - Camera-Ready Submission</title>
+    <!-- Quill Rich Text Editor Stylesheet -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Google Font for Theme -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Page Styles -->
+    <style>
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #0a2f5a; /* Dark blue from theme */
+            color: #f0f0f0; /* Light text for contrast */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            background-color: #103a6e; /* Slightly lighter blue for the card */
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .container { display: none; }
+        .visible { display: block; }
+
+        .form-group { margin-bottom: 25px; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #ffd700; } /* Golden-yellow from theme */
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            box-sizing: border-box;
+            background-color: #0a2f5a;
+            border: 1px solid #2a528a;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #f0f0f0;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ffd700; /* Golden highlight on focus */
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+        }
+
+        input[readonly] { background-color: #082548; cursor: not-allowed; }
+        
+        button {
+            background-color: #ffd700; /* Golden button */
+            color: #0a2f5a; /* Dark blue text */
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        button:hover { background-color: #e6c300; }
+        button:disabled { background-color: #555; color: #999; cursor: not-allowed; opacity: 0.6; }
+        
+        .error { color: #ff8a80; font-weight: normal; }
+        .success { color: #b9f6ca; }
+
+        #editor-container {
+            height: 350px;
+            border-radius: 5px;
+            background-color: #f0f0f0; /* Light background for readability */
+            color: #333; /* Dark text inside editor */
+        }
+        .ql-toolbar {
+            background-color: #1e487e;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            border: 1px solid #2a528a !important;
+        }
+        .ql-container {
+             border-bottom-left-radius: 5px;
+             border-bottom-right-radius: 5px;
+             border: 1px solid #2a528a !important;
+        }
+        .ql-snow .ql-stroke { stroke: #f0f0f0; }
+        .ql-snow .ql-picker-label { color: #f0f0f0; }
+
+        #word-count, #keyword-count { margin-top: 8px; font-size: 14px; text-align: right; }
+        
+        hr { border: 0; border-top: 1px solid #2a528a; margin: 30px 0; }
+        
+        h1 {
+            color: #ffffff;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        h3, h4 { color: #f0f0f0; }
+
+        /* Styles for custom file inputs */
+        input[type="file"] { display: none; }
+        .file-upload-label {
+            background-color: #2a528a;
+            color: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+        .file-upload-label:hover { background-color: #3a629a; }
+        .file-name {
+            margin-left: 15px;
+            color: #ccc;
+            font-style: italic;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1>Camera-Ready Submission Portal</h1>
+
+        <!-- SCREEN 1: ID VERIFICATION GATE -->
+        <div id="id-gate" class="container visible">
+            <h3>Step 1: Verify Your Application ID</h3>
+            <div class="form-group">
+                <label for="applicationIdInput">Enter your Application ID</label>
+                <input type="text" id="applicationIdInput" placeholder="e.g., RIC172d49e">
+            </div>
+            <button onclick="checkId()">Proceed</button>
+            <p id="gate-error" class="error"></p>
+        </div>
+
+        <!-- SCREEN 2: MAIN SUBMISSION FORM -->
+        <form id="submission-form" class="container">
+            <h3>Step 2: Submit Your Final Paper</h3>
+            <div class="form-group">
+                <label>Application ID</label>
+                <input type="text" id="applicationId" name="applicationId" readonly>
+            </div>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="title" name="title" readonly>
+            </div>
+            <hr>
+            <h4>Author and Affiliation Details</h4>
+            <div class="form-group">
+                <label for="authorType">Select Your Authorship Type</label>
+                <select id="authorType" onchange="updateAuthorFields()" required>
+                    <option value="">-- Please Select --</option>
+                    <option value="single">Single Author</option>
+                    <option value="multiSame">Multiple Authors, Same Affiliation</option>
+                    <option value="multiDiff">Multiple Authors, Multiple Affiliations</option>
+                </select>
+            </div>
+            <div id="author-fields-container"></div>
+            <hr>
+            <h4>Full Submission Text</h4>
+            <p style="color: #ccc; font-size: 14px;">Please paste your entire submission. The abstract portion must be 150-200 words.</p>
+            <div id="editor-container"></div>
+            <div id="word-count" class="error">Abstract Words: 0</div>
+            <hr>
+            <h4>Keywords (Max 6)</h4>
+            <div class="form-group">
+                <label for="keywords">Enter keywords separated by semicolons (;)</label>
+                <input type="text" id="keywords" name="keywords" placeholder="keyword one; keyword two; keyword three" onkeyup="validateForm()">
+                <p id="keyword-count" class="error">Keywords: 0 / 6</p>
+            </div>
+            <hr>
+
+            <!-- NEW: File Upload Section -->
+            <h4>File Uploads</h4>
+            <div class="form-group">
+                <label for="pdfFile-input">Upload abstract(PDF)*</label>
+                <label for="pdfFile-input" class="file-upload-label">Choose PDF</label>
+                <input type="file" id="pdfFile-input" name="pdfFile" accept=".pdf" required onchange="updateFileNameAndValidate('pdfFile-input', 'pdfFileName')">
+                <span id="pdfFileName" class="file-name">No file selected.</span>
+            </div>
+            <div class="form-group">
+                <label for="docFile-input">Upload abstract (DOC/DOCX)*</label>
+                <label for="docFile-input" class="file-upload-label">Choose Document</label>
+                <input type="file" id="docFile-input" name="docFile" accept=".doc,.docx" required onchange="updateFileNameAndValidate('docFile-input', 'docFileName')">
+                <span id="docFileName" class="file-name">No file selected.</span>
+            </div>
+            <hr>
+
+            <h4>Contact Details</h4>
+            <div class="form-group">
+                <label for="primaryContactEmail">Your Primary Contact Email*</label>
+                <input type="email" id="primaryContactEmail" name="primaryContactEmail" required>
+            </div>
+            <button type="submit" id="submit-btn" disabled>Submit Final Version</button>
+            <p id="form-message"></p>
+        </form>
+        
+        <!-- SCREEN 3: CONFIRMATION MESSAGE -->
+        <div id="confirmation-screen" class="container">
+            <h2 class="success">✅ Submission Successful!</h2>
+            <p>Thank you. Your camera-ready abstract has been received. Your submission ID is <strong id="submission-id"></strong>.</p>
+            <p>A confirmation email has been sent to your primary contact address.</p>
+        </div>
+    </div>
+
+<!-- Quill Rich Text Editor Library -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+    const idGate = document.getElementById('id-gate');
+    const submissionForm = document.getElementById('submission-form');
+    const confirmationScreen = document.getElementById('confirmation-screen');
+    const submitBtn = document.getElementById('submit-btn');
+    const wordCountEl = document.getElementById('word-count');
+    const keywordCountEl = document.getElementById('keyword-count');
+    const keywordsInput = document.getElementById('keywords');
+    let quill;
+
+    function updateFileNameAndValidate(inputId, displayNameId) {
+        const input = document.getElementById(inputId);
+        const displayName = document.getElementById(displayNameId);
+        if (input.files.length > 0) {
+            displayName.textContent = input.files[0].name;
+        } else {
+            displayName.textContent = 'No file selected.';
+        }
+        validateForm(); // Re-run validation whenever a file changes
+    }
+    
+    function validateForm() {
+        // 1. Check word count (must be between 150 and 200)
+        const text = quill ? quill.getText().trim() : '';
+        const wordCount = text.length > 0 ? text.split(/\s+/).length : 0;
+        wordCountEl.textContent = `Abstract Words: ${wordCount}`;
+        const isWordCountValid = wordCount >= 150 && wordCount <= 200;
+        wordCountEl.className = isWordCountValid ? 'success' : 'error';
+
+        // 2. Check keyword count (must be between 1 and 6)
+        const keywords = keywordsInput.value.trim();
+        const keywordCount = keywords.length > 0 ? keywords.split(';').filter(k => k.trim() !== '').length : 0;
+        keywordCountEl.textContent = `Keywords: ${keywordCount} / 6`;
+        const isKeywordCountValid = keywordCount > 0 && keywordCount <= 6;
+        keywordCountEl.className = isKeywordCountValid ? 'success' : 'error';
+
+        // 3. Check if files are uploaded
+        const pdfFile = document.getElementById('pdfFile-input').files.length > 0;
+        const docFile = document.getElementById('docFile-input').files.length > 0;
+        const areFilesUploaded = pdfFile && docFile;
+        
+        // 4. Enable submit button ONLY if all rules are met
+        submitBtn.disabled = !(isWordCountValid && isKeywordCountValid && areFilesUploaded);
+    }
+
+    function initializeEditor() {
+        quill = new Quill('#editor-container', { theme: 'snow', placeholder: 'Paste your full submission text here...' });
+        quill.on('text-change', validateForm); // Validate whenever the text changes
+    }
+
+    async function checkId() {
+        const applicationId = document.getElementById('applicationIdInput').value;
+        const errorEl = document.getElementById('gate-error');
+        errorEl.textContent = '';
+        if (!applicationId) {
+            errorEl.textContent = 'Please enter an Application ID.';
+            return;
+        }
+        try {
+            const response = await fetch('/api/check-id', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ applicationId })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+            document.getElementById('applicationId').value = data.applicationId;
+            document.getElementById('title').value = data.title;
+            idGate.classList.remove('visible');
+            submissionForm.classList.add('visible');
+            initializeEditor();
+        } catch (error) {
+            errorEl.textContent = `Error: ${error.message}`;
+        }
+    }
+    
+    function updateAuthorFields() {
+        const type = document.getElementById('authorType').value;
+        const container = document.getElementById('author-fields-container');
+        let html = '';
+        if (type === 'single') {
+            html = `<div class="form-group"><label for="authorDetail">Author Name & Affiliation</label><textarea id="authorDetail" class="author-detail" rows="3" placeholder="Author One\nDepartment of [Name], Indian Institute of Technology Guwahati, Assam, India."></textarea></div>`;
+        } else if (type === 'multiSame') {
+            html = `<div class="form-group"><label for="authorNames">Author Names (comma-separated)</label><input type="text" id="authorNames" class="author-detail" placeholder="Author One, Author Two*, Author Three"><label for="authorAffiliation" style="margin-top:10px;">Affiliation (for all authors)</label><input type="text" id="authorAffiliation" class="author-detail" placeholder="Department of [Authors], Indian Institute of Technology Guwahati, Assam, India."></div>`;
+        } else if (type === 'multiDiff') {
+            html = `<div class="form-group"><label for="authorDetail">Authors and Their Affiliations</label><textarea id="authorDetail" class="author-detail" rows="5" placeholder="Author One 1, Author Two 2*\n1Department of [Name 1], IIT Guwahati, Assam, India.\n2Department of [Name 2], Gauhati University, Assam, India."></textarea></div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    submissionForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        submitBtn.disabled = true;
+        const formMessage = document.getElementById('form-message');
+        formMessage.textContent = 'Submitting... Please wait.';
+
+        // Use FormData to send files and text
+        const formData = new FormData();
+        formData.append('applicationId', document.getElementById('applicationId').value);
+        formData.append('title', document.getElementById('title').value);
+        
+        // Collect author details
+        const authorDetails = Array.from(document.querySelectorAll('.author-detail')).map(i => i.value).join('\n').trim();
+        formData.append('authorDetails', authorDetails);
+        
+        // Use quill.getText() for plain text to generate the summary PDF
+        formData.append('submissionText', quill.getText()); 
+        
+        formData.append('keywords', document.getElementById('keywords').value);
+        formData.append('primaryContactEmail', document.getElementById('primaryContactEmail').value);
+        
+        // Append files
+        formData.append('pdfFile', document.getElementById('pdfFile-input').files[0]);
+        formData.append('docFile', document.getElementById('docFile-input').files[0]);
+        
+        try {
+            const response = await fetch('/api/submit', {
+                method: 'POST',
+                body: formData // Browser will set the Content-Type to multipart/form-data
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error);
+
+            submissionForm.classList.remove('visible');
+            confirmationScreen.classList.add('visible');
+            document.getElementById('submission-id').textContent = data.submissionId;
+        } catch(error) {
+            formMessage.textContent = `Error: ${error.message}`;
+            formMessage.className = 'error';
+            // Only re-enable the button if validation passes
+            validateForm();
+        }
+    });
+</script>
+</body>
+</html>
+
