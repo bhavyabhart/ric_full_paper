@@ -11,13 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "dropbox": "^10.34.0",
     "express": "^4.19.2",
     "google-auth-library": "^9.11.0",
     "google-spreadsheet": "^4.1.1",
     "multer": "^2.0.2",
     "nodemailer": "^6.9.14",
-    "pdfkit": "^0.15.0"
+    "pdfkit": "^0.15.0",
+    "sib-api-v3-sdk": "^8.5.0"
   },
   "overrides": {
     "ky": "0.33.3"
