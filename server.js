@@ -635,7 +635,7 @@ app.post('/api/submit',
         const uploadPromises = [
             // Generated summary PDF
             dbx.filesUpload({ 
-                path: `${dropboxFolder}/submission-summary.pdf`, 
+                path: `${dropboxFolder}/submission-info.pdf`, 
                 contents: generatedPdfContent 
             }),
             // Paper file (PDF or DOCX)
