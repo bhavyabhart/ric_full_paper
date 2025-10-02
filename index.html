@@ -3,16 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>RIC 2025 - Camera-Ready Submission</title>
-    <!-- Quill Rich Text Editor Stylesheet -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <!-- Google Font for Theme -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Page Styles -->
     <style>
         body {
             font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background-color: #0a2f5a; /* Dark blue from theme */
-            color: #f0f0f0; /* Light text for contrast */
+            background-color: #0a2f5a;
+            color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,19 +19,19 @@
         }
 
         .main-container {
-            background-color: #103a6e; /* Slightly lighter blue for the card */
+            background-color: #103a6e;
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             width: 100%;
-            max-width: 800px;
+            max-width: 900px;
         }
 
         .container { display: none; }
         .visible { display: block; }
 
         .form-group { margin-bottom: 25px; }
-        label { font-weight: bold; display: block; margin-bottom: 8px; color: #ffd700; } /* Golden-yellow from theme */
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #ffd700; }
         
         input, select, textarea {
             width: 100%;
@@ -51,15 +47,15 @@
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #ffd700; /* Golden highlight on focus */
+            border-color: #ffd700;
             box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
 
         input[readonly] { background-color: #082548; cursor: not-allowed; }
         
         button {
-            background-color: #ffd700; /* Golden button */
-            color: #0a2f5a; /* Dark blue text */
+            background-color: #ffd700;
+            color: #0a2f5a;
             padding: 12px 20px;
             border: none;
             border-radius: 5px;
@@ -67,6 +63,7 @@
             font-size: 16px;
             font-weight: bold;
             transition: background-color 0.2s, opacity 0.2s;
+            margin-top: 10px;
         }
 
         button:hover { background-color: #e6c300; }
@@ -75,28 +72,6 @@
         .error { color: #ff8a80; font-weight: normal; }
         .success { color: #b9f6ca; }
 
-        #editor-container {
-            height: 350px;
-            border-radius: 5px;
-            background-color: #f0f0f0; /* Light background for readability */
-            color: #333; /* Dark text inside editor */
-        }
-        .ql-toolbar {
-            background-color: #1e487e;
-            border-top-left-radius: 5px;
-            border-top-right-radius: 5px;
-            border: 1px solid #2a528a !important;
-        }
-        .ql-container {
-             border-bottom-left-radius: 5px;
-             border-bottom-right-radius: 5px;
-             border: 1px solid #2a528a !important;
-        }
-        .ql-snow .ql-stroke { stroke: #f0f0f0; }
-        .ql-snow .ql-picker-label { color: #f0f0f0; }
-
-        #word-count, #keyword-count { margin-top: 8px; font-size: 14px; text-align: right; }
-        
         hr { border: 0; border-top: 1px solid #2a528a; margin: 30px 0; }
         
         h1 {
@@ -108,7 +83,6 @@
 
         h3, h4 { color: #f0f0f0; }
 
-        /* Styles for custom file inputs */
         input[type="file"] { display: none; }
         .file-upload-label {
             background-color: #2a528a;
@@ -126,6 +100,75 @@
             font-style: italic;
             font-size: 14px;
         }
+
+        .author-entry {
+            background-color: #0a2f5a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #2a528a;
+        }
+
+        .author-entry h5 {
+            color: #ffd700;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .remove-author-btn {
+            background-color: #ff4444;
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .remove-author-btn:hover {
+            background-color: #cc0000;
+        }
+
+        .add-author-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .add-author-btn:hover {
+            background-color: #45a049;
+        }
+
+        .format-choice {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .format-option {
+            flex: 1;
+            background-color: #0a2f5a;
+            border: 2px solid #2a528a;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .format-option:hover {
+            border-color: #ffd700;
+            transform: translateY(-2px);
+        }
+
+        .format-option.selected {
+            border-color: #ffd700;
+            background-color: #1e487e;
+        }
+
+        .format-option h4 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+
+        #keyword-count { margin-top: 8px; font-size: 14px; text-align: right; }
     </style>
 </head>
 <body>
@@ -147,61 +190,100 @@
         <!-- SCREEN 2: MAIN SUBMISSION FORM -->
         <form id="submission-form" class="container">
             <h3>Step 2: Submit Your Final Paper</h3>
+            
+            <!-- Application ID (readonly) -->
             <div class="form-group">
                 <label>Application ID</label>
                 <input type="text" id="applicationId" name="applicationId" readonly>
             </div>
+
+            <hr>
+            
+            <!-- Paper Details -->
+            <h4>Paper Information</h4>
             <div class="form-group">
-                <label>Title</label>
-                <input type="text" id="title" name="title" readonly>
+                <label for="paperTitle">Paper Title*</label>
+                <input type="text" id="paperTitle" name="paperTitle" required placeholder="Enter the title of your paper">
             </div>
-            <hr>
-            <h4>Author and Affiliation Details</h4>
+
             <div class="form-group">
-                <label for="authorType">Select Your Authorship Type</label>
-                <select id="authorType" onchange="updateAuthorFields()" required>
-                    <option value="">-- Please Select --</option>
-                    <option value="single">Single Author</option>
-                    <option value="multiSame">Multiple Authors, Same Affiliation</option>
-                    <option value="multiDiff">Multiple Authors, Multiple Affiliations</option>
-                </select>
+                <label for="paperTheme">Paper Theme*</label>
+                <input type="text" id="paperTheme" name="paperTheme" required placeholder="Enter the theme of your paper">
             </div>
-            <div id="author-fields-container"></div>
+
             <hr>
-            <h4>Full Submission Text</h4>
-            <p style="color: #ccc; font-size: 14px;">Please paste your entire submission. The abstract portion must be 150-200 words.</p>
-            <div id="editor-container"></div>
-            <div id="word-count" class="error">Abstract Words: 0</div>
+
+            <!-- Authors Section -->
+            <h4>Author Details</h4>
+            <div id="authors-container"></div>
+            <button type="button" class="add-author-btn" onclick="addAuthor()">+ Add Author</button>
+
             <hr>
+
+            <!-- Keywords -->
             <h4>Keywords (Max 6)</h4>
             <div class="form-group">
                 <label for="keywords">Enter keywords separated by semicolons (;)</label>
                 <input type="text" id="keywords" name="keywords" placeholder="keyword one; keyword two; keyword three" onkeyup="validateForm()">
                 <p id="keyword-count" class="error">Keywords: 0 / 6</p>
             </div>
+
             <hr>
 
-            <!-- NEW: File Upload Section -->
-            <h4>File Uploads</h4>
-            <div class="form-group">
-                <label for="pdfFile-input">Upload abstract(PDF)*</label>
-                <label for="pdfFile-input" class="file-upload-label">Choose PDF</label>
-                <input type="file" id="pdfFile-input" name="pdfFile" accept=".pdf" required onchange="updateFileNameAndValidate('pdfFile-input', 'pdfFileName')">
-                <span id="pdfFileName" class="file-name">No file selected.</span>
+            <!-- Format Selection -->
+            <h4>Submission Format*</h4>
+            <p style="color: #ccc; font-size: 14px;">Choose your submission format</p>
+            <div class="format-choice">
+                <div class="format-option" onclick="selectFormat('latex')">
+                    <h4>LaTeX</h4>
+                    <p>PDF + ZIP of supplementary materials</p>
+                </div>
+                <div class="format-option" onclick="selectFormat('doc')">
+                    <h4>Document</h4>
+                    <p>DOCX + ZIP of supplementary materials</p>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="docFile-input">Upload abstract (DOC/DOCX)*</label>
-                <label for="docFile-input" class="file-upload-label">Choose Document</label>
-                <input type="file" id="docFile-input" name="docFile" accept=".doc,.docx" required onchange="updateFileNameAndValidate('docFile-input', 'docFileName')">
-                <span id="docFileName" class="file-name">No file selected.</span>
+            <input type="hidden" id="selectedFormat" name="selectedFormat">
+
+            <!-- File Upload Section (Dynamic based on format) -->
+            <div id="file-upload-section" style="display: none; margin-top: 30px;">
+                <h4>File Uploads</h4>
+                
+                <!-- LaTeX Files -->
+                <div id="latex-uploads" style="display: none;">
+                    <div class="form-group">
+                        <label for="latexPdf-input">Upload Paper PDF*</label>
+                        <label for="latexPdf-input" class="file-upload-label">Choose PDF</label>
+                        <input type="file" id="latexPdf-input" name="latexPdf" accept=".pdf" onchange="updateFileNameAndValidate('latexPdf-input', 'latexPdfName')">
+                        <span id="latexPdfName" class="file-name">No file selected.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="latexZip-input">Upload Supplementary Materials (ZIP)*</label>
+                        <label for="latexZip-input" class="file-upload-label">Choose ZIP</label>
+                        <input type="file" id="latexZip-input" name="latexZip" accept=".zip" onchange="updateFileNameAndValidate('latexZip-input', 'latexZipName')">
+                        <span id="latexZipName" class="file-name">No file selected.</span>
+                    </div>
+                </div>
+
+                <!-- DOC Files -->
+                <div id="doc-uploads" style="display: none;">
+                    <div class="form-group">
+                        <label for="docFile-input">Upload Paper Document (DOCX)*</label>
+                        <label for="docFile-input" class="file-upload-label">Choose DOCX</label>
+                        <input type="file" id="docFile-input" name="docFile" accept=".docx" onchange="updateFileNameAndValidate('docFile-input', 'docFileName')">
+                        <span id="docFileName" class="file-name">No file selected.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="docZip-input">Upload Supplementary Materials (ZIP)*</label>
+                        <label for="docZip-input" class="file-upload-label">Choose ZIP</label>
+                        <input type="file" id="docZip-input" name="docZip" accept=".zip" onchange="updateFileNameAndValidate('docZip-input', 'docZipName')">
+                        <span id="docZipName" class="file-name">No file selected.</span>
+                    </div>
+                </div>
             </div>
+
             <hr>
 
-            <h4>Contact Details</h4>
-            <div class="form-group">
-                <label for="primaryContactEmail">Your Primary Contact Email*</label>
-                <input type="email" id="primaryContactEmail" name="primaryContactEmail" required>
-            </div>
             <button type="submit" id="submit-btn" disabled>Submit Final Version</button>
             <p id="form-message"></p>
         </form>
@@ -209,22 +291,83 @@
         <!-- SCREEN 3: CONFIRMATION MESSAGE -->
         <div id="confirmation-screen" class="container">
             <h2 class="success">✅ Submission Successful!</h2>
-            <p>Thank you. Your camera-ready abstract has been received. Your submission ID is <strong id="submission-id"></strong>.</p>
-            <p>A confirmation email has been sent to your primary contact address.</p>
+            <p>Thank you. Your camera-ready paper has been received. Your submission ID is <strong id="submission-id"></strong>.</p>
         </div>
     </div>
 
-<!-- Quill Rich Text Editor Library -->
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 <script>
     const idGate = document.getElementById('id-gate');
     const submissionForm = document.getElementById('submission-form');
     const confirmationScreen = document.getElementById('confirmation-screen');
     const submitBtn = document.getElementById('submit-btn');
-    const wordCountEl = document.getElementById('word-count');
     const keywordCountEl = document.getElementById('keyword-count');
     const keywordsInput = document.getElementById('keywords');
-    let quill;
+    
+    let authorCount = 0;
+    let selectedFormat = null;
+
+    function addAuthor() {
+        authorCount++;
+        const container = document.getElementById('authors-container');
+        const authorDiv = document.createElement('div');
+        authorDiv.className = 'author-entry';
+        authorDiv.id = `author-${authorCount}`;
+        authorDiv.innerHTML = `
+            <h5>Author ${authorCount}</h5>
+            <div class="form-group">
+                <label for="authorName-${authorCount}">Full Name*</label>
+                <input type="text" id="authorName-${authorCount}" class="author-field" placeholder="Author Full Name" required>
+            </div>
+            <div class="form-group">
+                <label for="authorAffiliation-${authorCount}">Affiliation*</label>
+                <input type="text" id="authorAffiliation-${authorCount}" class="author-field" placeholder="Department, Institution, City, Country" required>
+            </div>
+            <div class="form-group">
+                <label for="authorEmail-${authorCount}">Email*</label>
+                <input type="email" id="authorEmail-${authorCount}" class="author-field" placeholder="author@example.com" required>
+            </div>
+            ${authorCount > 1 ? `<button type="button" class="remove-author-btn" onclick="removeAuthor(${authorCount})">Remove Author</button>` : ''}
+        `;
+        container.appendChild(authorDiv);
+        validateForm();
+    }
+
+    function removeAuthor(id) {
+        const authorDiv = document.getElementById(`author-${id}`);
+        if (authorDiv) {
+            authorDiv.remove();
+            validateForm();
+        }
+    }
+
+    function selectFormat(format) {
+        selectedFormat = format;
+        document.getElementById('selectedFormat').value = format;
+        
+        // Update UI
+        document.querySelectorAll('.format-option').forEach(opt => opt.classList.remove('selected'));
+        event.target.closest('.format-option').classList.add('selected');
+        
+        // Show file upload section
+        document.getElementById('file-upload-section').style.display = 'block';
+        
+        // Show/hide appropriate upload fields
+        if (format === 'latex') {
+            document.getElementById('latex-uploads').style.display = 'block';
+            document.getElementById('doc-uploads').style.display = 'none';
+            // Clear doc files
+            document.getElementById('docFile-input').value = '';
+            document.getElementById('docZip-input').value = '';
+        } else {
+            document.getElementById('latex-uploads').style.display = 'none';
+            document.getElementById('doc-uploads').style.display = 'block';
+            // Clear latex files
+            document.getElementById('latexPdf-input').value = '';
+            document.getElementById('latexZip-input').value = '';
+        }
+        
+        validateForm();
+    }
 
     function updateFileNameAndValidate(inputId, displayNameId) {
         const input = document.getElementById(inputId);
@@ -234,36 +377,52 @@
         } else {
             displayName.textContent = 'No file selected.';
         }
-        validateForm(); // Re-run validation whenever a file changes
+        validateForm();
     }
     
     function validateForm() {
-        // 1. Check word count (must be between 150 and 200)
-        const text = quill ? quill.getText().trim() : '';
-        const wordCount = text.length > 0 ? text.split(/\s+/).length : 0;
-        wordCountEl.textContent = `Abstract Words: ${wordCount}`;
-        const isWordCountValid = wordCount >= 150 && wordCount <= 200;
-        wordCountEl.className = isWordCountValid ? 'success' : 'error';
+        let isValid = true;
 
-        // 2. Check keyword count (must be between 1 and 6)
+        // Check keywords (1-6)
         const keywords = keywordsInput.value.trim();
         const keywordCount = keywords.length > 0 ? keywords.split(';').filter(k => k.trim() !== '').length : 0;
         keywordCountEl.textContent = `Keywords: ${keywordCount} / 6`;
         const isKeywordCountValid = keywordCount > 0 && keywordCount <= 6;
         keywordCountEl.className = isKeywordCountValid ? 'success' : 'error';
+        isValid = isValid && isKeywordCountValid;
 
-        // 3. Check if files are uploaded
-        const pdfFile = document.getElementById('pdfFile-input').files.length > 0;
-        const docFile = document.getElementById('docFile-input').files.length > 0;
-        const areFilesUploaded = pdfFile && docFile;
-        
-        // 4. Enable submit button ONLY if all rules are met
-        submitBtn.disabled = !(isWordCountValid && isKeywordCountValid && areFilesUploaded);
-    }
+        // Check if at least one author exists
+        const authors = document.querySelectorAll('.author-entry');
+        isValid = isValid && authors.length > 0;
 
-    function initializeEditor() {
-        quill = new Quill('#editor-container', { theme: 'snow', placeholder: 'Paste your full submission text here...' });
-        quill.on('text-change', validateForm); // Validate whenever the text changes
+        // Check all author fields are filled
+        const authorFields = document.querySelectorAll('.author-field');
+        authorFields.forEach(field => {
+            if (!field.value.trim()) isValid = false;
+        });
+
+        // Check paper title and theme
+        const paperTitle = document.getElementById('paperTitle');
+        const paperTheme = document.getElementById('paperTheme');
+        if (paperTitle) isValid = isValid && paperTitle.value.trim() !== '';
+        if (paperTheme) isValid = isValid && paperTheme.value.trim() !== '';
+
+        // Check format selection and files
+        if (!selectedFormat) {
+            isValid = false;
+        } else {
+            if (selectedFormat === 'latex') {
+                const pdfFile = document.getElementById('latexPdf-input').files.length > 0;
+                const zipFile = document.getElementById('latexZip-input').files.length > 0;
+                isValid = isValid && pdfFile && zipFile;
+            } else if (selectedFormat === 'doc') {
+                const docFile = document.getElementById('docFile-input').files.length > 0;
+                const zipFile = document.getElementById('docZip-input').files.length > 0;
+                isValid = isValid && docFile && zipFile;
+            }
+        }
+
+        submitBtn.disabled = !isValid;
     }
 
     async function checkId() {
@@ -283,27 +442,13 @@
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
             document.getElementById('applicationId').value = data.applicationId;
-            document.getElementById('title').value = data.title;
             idGate.classList.remove('visible');
             submissionForm.classList.add('visible');
-            initializeEditor();
+            // Initialize with one author
+            addAuthor();
         } catch (error) {
             errorEl.textContent = `Error: ${error.message}`;
         }
-    }
-    
-    function updateAuthorFields() {
-        const type = document.getElementById('authorType').value;
-        const container = document.getElementById('author-fields-container');
-        let html = '';
-        if (type === 'single') {
-            html = `<div class="form-group"><label for="authorDetail">Author Name & Affiliation</label><textarea id="authorDetail" class="author-detail" rows="3" placeholder="Author One\nDepartment of [Name], Indian Institute of Technology Guwahati, Assam, India."></textarea></div>`;
-        } else if (type === 'multiSame') {
-            html = `<div class="form-group"><label for="authorNames">Author Names (comma-separated)</label><input type="text" id="authorNames" class="author-detail" placeholder="Author One, Author Two*, Author Three"><label for="authorAffiliation" style="margin-top:10px;">Affiliation (for all authors)</label><input type="text" id="authorAffiliation" class="author-detail" placeholder="Department of [Authors], Indian Institute of Technology Guwahati, Assam, India."></div>`;
-        } else if (type === 'multiDiff') {
-            html = `<div class="form-group"><label for="authorDetail">Authors and Their Affiliations</label><textarea id="authorDetail" class="author-detail" rows="5" placeholder="Author One 1, Author Two 2*\n1Department of [Name 1], IIT Guwahati, Assam, India.\n2Department of [Name 2], Gauhati University, Assam, India."></textarea></div>`;
-        }
-        container.innerHTML = html;
     }
 
     submissionForm.addEventListener('submit', async function(event) {
@@ -312,29 +457,39 @@
         const formMessage = document.getElementById('form-message');
         formMessage.textContent = 'Submitting... Please wait.';
 
-        // Use FormData to send files and text
         const formData = new FormData();
         formData.append('applicationId', document.getElementById('applicationId').value);
-        formData.append('title', document.getElementById('title').value);
+        formData.append('paperTitle', document.getElementById('paperTitle').value);
+        formData.append('paperTheme', document.getElementById('paperTheme').value);
         
-        // Collect author details
-        const authorDetails = Array.from(document.querySelectorAll('.author-detail')).map(i => i.value).join('\n').trim();
-        formData.append('authorDetails', authorDetails);
-        
-        // Use quill.getText() for plain text to generate the summary PDF
-        formData.append('submissionText', quill.getText()); 
+        // Collect all authors
+        const authors = [];
+        document.querySelectorAll('.author-entry').forEach((entry, index) => {
+            const id = entry.id.split('-')[1];
+            authors.push({
+                name: document.getElementById(`authorName-${id}`).value,
+                affiliation: document.getElementById(`authorAffiliation-${id}`).value,
+                email: document.getElementById(`authorEmail-${id}`).value
+            });
+        });
+        formData.append('authors', JSON.stringify(authors));
         
         formData.append('keywords', document.getElementById('keywords').value);
-        formData.append('primaryContactEmail', document.getElementById('primaryContactEmail').value);
+        formData.append('submissionFormat', selectedFormat);
         
-        // Append files
-        formData.append('pdfFile', document.getElementById('pdfFile-input').files[0]);
-        formData.append('docFile', document.getElementById('docFile-input').files[0]);
+        // Append files based on format
+        if (selectedFormat === 'latex') {
+            formData.append('paperFile', document.getElementById('latexPdf-input').files[0]);
+            formData.append('supplementaryZip', document.getElementById('latexZip-input').files[0]);
+        } else {
+            formData.append('paperFile', document.getElementById('docFile-input').files[0]);
+            formData.append('supplementaryZip', document.getElementById('docZip-input').files[0]);
+        }
         
         try {
             const response = await fetch('/api/submit', {
                 method: 'POST',
-                body: formData // Browser will set the Content-Type to multipart/form-data
+                body: formData
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
@@ -345,11 +500,13 @@
         } catch(error) {
             formMessage.textContent = `Error: ${error.message}`;
             formMessage.className = 'error';
-            // Only re-enable the button if validation passes
             validateForm();
         }
     });
+
+    // Add event listeners to paper fields
+    document.getElementById('paperTitle')?.addEventListener('input', validateForm);
+    document.getElementById('paperTheme')?.addEventListener('input', validateForm);
 </script>
 </body>
 </html>
-

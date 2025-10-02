@@ -184,6 +184,234 @@
 // app.listen(PORT, () => {
 //     console.log(`🚀 Server running on port ${PORT}`);
 // });
+
+
+// // --- 1. IMPORT LIBRARIES ---
+// const express = require('express');
+// const { GoogleSpreadsheet } = require('google-spreadsheet');
+// const { JWT } = require('google-auth-library');
+// const path = require('path');
+// const fs = require('fs');
+// const PDFDocument = require('pdfkit');
+// const { Dropbox } = require('dropbox');
+// const multer = require('multer');
+
+// // --- 2. SECURELY LOAD CONFIGURATION ---
+// const isProduction = process.env.NODE_ENV === 'production';
+// let config;
+// let serviceAccountCreds;
+
+// try {
+//     if (isProduction) {
+//         config = {
+//             DROPBOX_APP_KEY: process.env.DROPBOX_APP_KEY,
+//             DROPBOX_APP_SECRET: process.env.DROPBOX_APP_SECRET,
+//             DROPBOX_REFRESH_TOKEN: process.env.DROPBOX_REFRESH_TOKEN,
+//             SPREADSHEET_ID: process.env.SPREADSHEET_ID,
+//         };
+//         serviceAccountCreds = JSON.parse(process.env.SERVICE_ACCOUNT_CREDS_JSON || '{}');
+//     } else {
+//         config = require('./config.js');
+//         serviceAccountCreds = require(config.SERVICE_ACCOUNT_CREDS_FILE);
+//     }
+// } catch (error) {
+//     console.error("--- FATAL CONFIGURATION ERROR ---", error);
+//     process.exit(1);
+// }
+
+// // Initialize Dropbox with Refresh Token
+// const dbx = new Dropbox({
+//     clientId: config.DROPBOX_APP_KEY,
+//     clientSecret: config.DROPBOX_APP_SECRET,
+//     refreshToken: config.DROPBOX_REFRESH_TOKEN,
+// });
+
+// const upload = multer({ storage: multer.memoryStorage() });
+// const app = express();
+// const PORT = process.env.PORT || 8888;
+
+// // --- 3. MIDDLEWARE & ROUTES ---
+// app.use(express.json());
+
+// // Health check endpoint for cron job to keep server alive
+// app.get('/health', (req, res) => {
+//     console.log(`[HEALTH CHECK] Ping received at ${new Date().toISOString()}`);
+//     res.status(200).json({ 
+//         status: 'alive', 
+//         timestamp: new Date().toISOString() 
+//     });
+// });
+
+// // API Endpoint to check the Application ID
+// app.post('/api/check-id', async (req, res) => {
+//     try {
+//         console.log('[CHECK-ID] Starting ID verification...');
+        
+//         const jwt = new JWT({
+//             email: serviceAccountCreds.client_email,
+//             key: serviceAccountCreds.private_key,
+//             scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+//         });
+        
+//         const doc = new GoogleSpreadsheet(config.SPREADSHEET_ID, jwt);
+//         await doc.loadInfo();
+//         console.log('[CHECK-ID] Connected to Google Sheets');
+        
+//         const sheet = doc.sheetsByTitle['PDF to authors'];
+//         if (!sheet) { 
+//             throw new Error("Sheet tab 'PDF to authors' not found."); 
+//         }
+        
+//         const rows = await sheet.getRows();
+//         console.log(`[CHECK-ID] Found ${rows.length} rows in sheet`);
+        
+//         const { applicationId } = req.body;
+//         console.log(`[CHECK-ID] Looking for Application ID: ${applicationId}`);
+        
+//         const paperRow = rows.find(row => row.get('Application id') === applicationId);
+        
+//         if (!paperRow) { 
+//             console.log(`[CHECK-ID] Application ID not found: ${applicationId}`);
+//             return res.status(404).json({ error: 'Application ID has not been accepted.'}); 
+//         }
+        
+//         const decision = paperRow.get('Decision');
+//         console.log(`[CHECK-ID] Found decision: ${decision}`);
+        
+//         const eligibleDecisions = [
+//             'accepted', 
+//             'accept', 
+//             'accepted with minor revisions', 
+//             'accepted with revisions', 
+//             'accept with revision', 
+//             'accepted as it is', 
+//             'accept with minor revisions',
+//             'accept with minor revision'
+//         ];
+        
+//         if (eligibleDecisions.includes(decision.toLowerCase().trim())) {
+//             console.log(`[CHECK-ID] ✅ Application eligible`);
+//             res.json({ 
+//                 success: true, 
+//                 applicationId: paperRow.get('Application id'), 
+//                 title: paperRow.get('Title') 
+//             });
+//         } else {
+//             console.log(`[CHECK-ID] ❌ Application not eligible`);
+//             res.status(403).json({ 
+//                 error: `This paper's status is "${decision}" and is not eligible.` 
+//             });
+//         }
+//     } catch (error) {
+//         console.error("[CHECK-ID] ERROR:", error);
+//         res.status(500).json({ error: 'An internal server error occurred.' });
+//     }
+// });
+
+// // API Endpoint to handle the submission with file uploads
+// app.post('/api/submit',
+//     upload.fields([{ name: 'pdfFile', maxCount: 1 }, { name: 'docFile', maxCount: 1 }]),
+//     async (req, res) => {
+//     let generatedPdfPath = null;
+//     try {
+//         const { applicationId, title, authorDetails, submissionText, keywords, primaryContactEmail } = req.body;
+//         const uploadedPdfFile = req.files.pdfFile?.[0];
+//         const uploadedDocFile = req.files.docFile?.[0];
+
+//         if (!applicationId || !uploadedPdfFile || !uploadedDocFile) {
+//             console.log('[SUBMIT] ❌ Missing required fields or files');
+//             return res.status(400).json({ error: 'Missing required fields or files.' });
+//         }
+        
+//         const submissionId = `SUB-${Date.now()}`;
+//         console.log(`[SUBMIT] --- Starting submission for Application ID: ${applicationId} ---`);
+
+//         // --- Step 1: Check if a submission exists and delete it to allow replacement ---
+//         const dropboxFolder = `/RIC Submissions/${applicationId}`;
+//         try {
+//             await dbx.filesListFolder({ path: dropboxFolder });
+//             console.log(`[SUBMIT] ⚠️ Submission for ${applicationId} already exists. Deleting old version...`);
+//             await dbx.filesDeleteV2({ path: dropboxFolder });
+//             console.log(`[SUBMIT] ✅ Successfully deleted old submission folder.`);
+//         } catch (error) {
+//             if (error.status === 409 && error.error && error.error.error_summary.startsWith('path/not_found')) {
+//                 console.log(`[SUBMIT] Path ${dropboxFolder} not found. Proceeding with first-time submission.`);
+//             } else {
+//                 throw error;
+//             }
+//         }
+
+//         // --- Step 2: Generate PDF from the text editor content ---
+//         console.log('[SUBMIT] Generating PDF...');
+//         const tempDir = isProduction ? '/tmp' : 'uploads';
+//         if (!isProduction) fs.mkdirSync(tempDir, { recursive: true });
+        
+//         generatedPdfPath = path.join(tempDir, `generated-summary-${applicationId}.pdf`);
+//         const fullTextForPdf = `Author Details:\n${authorDetails}\n\nKeywords:\n${keywords}\n\nFull Text:\n${submissionText}`;
+        
+//         const pdfDoc = new PDFDocument({ margin: 72 });
+//         const stream = fs.createWriteStream(generatedPdfPath);
+//         pdfDoc.pipe(stream);
+//         pdfDoc.fontSize(18).font('Helvetica-Bold').text(title, { align: 'center' });
+//         pdfDoc.fontSize(12).font('Helvetica').text(`Application ID: ${applicationId}`, { align: 'center' }).moveDown(2);
+//         pdfDoc.font('Helvetica').text(fullTextForPdf, { align: 'justify' });
+//         pdfDoc.end();
+        
+//         await new Promise((resolve, reject) => {
+//             stream.on('finish', resolve);
+//             stream.on('error', reject);
+//         });
+        
+//         const generatedPdfContent = fs.readFileSync(generatedPdfPath);
+//         console.log("[SUBMIT] ✅ Generated PDF created successfully.");
+
+//         // --- Step 3: Upload all files to the new Dropbox folder ---
+//         console.log(`[SUBMIT] Uploading 3 files to Dropbox folder: ${dropboxFolder}`);
+
+//         const uploadPromises = [
+//             dbx.filesUpload({ 
+//                 path: `${dropboxFolder}/generated-pdf.pdf`, 
+//                 contents: generatedPdfContent 
+//             }),
+//             dbx.filesUpload({ 
+//                 path: `${dropboxFolder}/uploaded-pdf.pdf`, 
+//                 contents: uploadedPdfFile.buffer 
+//             }),
+//             dbx.filesUpload({ 
+//                 path: `${dropboxFolder}/uploaded-doc${path.extname(uploadedDocFile.originalname)}`, 
+//                 contents: uploadedDocFile.buffer 
+//             })
+//         ];
+        
+//         await Promise.all(uploadPromises);
+//         console.log(`[SUBMIT] ✅ All files successfully uploaded to Dropbox.`);
+        
+//         console.log(`[SUBMIT] ✅ Submission complete! Submission ID: ${submissionId}`);
+//         res.json({ success: true, submissionId });
+
+//     } catch (error) {
+//         console.error("[SUBMIT] --- DETAILED SUBMISSION CRASH ---", error);
+//         res.status(500).json({ error: 'A critical error occurred during submission.' });
+//     } finally {
+//         // --- Step 4: Clean up temporary file ---
+//         if (generatedPdfPath && fs.existsSync(generatedPdfPath)) {
+//             fs.unlinkSync(generatedPdfPath);
+//             console.log("[SUBMIT] ✅ Temporary generated PDF cleaned up.");
+//         }
+//     }
+// });
+
+// // Serve static files
+// app.use(express.static(path.join(__dirname)));
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'index.html'));
+// });
+
+// app.listen(PORT, () => {
+//     console.log(`🚀 Server running on port ${PORT}`);
+//     console.log(`📊 Environment: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
+// });
+
 // --- 1. IMPORT LIBRARIES ---
 const express = require('express');
 const { GoogleSpreadsheet } = require('google-spreadsheet');
@@ -308,18 +536,24 @@ app.post('/api/check-id', async (req, res) => {
 
 // API Endpoint to handle the submission with file uploads
 app.post('/api/submit',
-    upload.fields([{ name: 'pdfFile', maxCount: 1 }, { name: 'docFile', maxCount: 1 }]),
+    upload.fields([
+        { name: 'paperFile', maxCount: 1 }, 
+        { name: 'supplementaryZip', maxCount: 1 }
+    ]),
     async (req, res) => {
     let generatedPdfPath = null;
     try {
-        const { applicationId, title, authorDetails, submissionText, keywords, primaryContactEmail } = req.body;
-        const uploadedPdfFile = req.files.pdfFile?.[0];
-        const uploadedDocFile = req.files.docFile?.[0];
+        const { applicationId, paperTitle, paperTheme, authors, keywords, submissionFormat } = req.body;
+        const paperFile = req.files.paperFile?.[0];
+        const supplementaryZip = req.files.supplementaryZip?.[0];
 
-        if (!applicationId || !uploadedPdfFile || !uploadedDocFile) {
+        if (!applicationId || !paperTitle || !paperTheme || !authors || !paperFile || !supplementaryZip || !submissionFormat) {
             console.log('[SUBMIT] ❌ Missing required fields or files');
             return res.status(400).json({ error: 'Missing required fields or files.' });
         }
+
+        // Parse authors JSON
+        const authorsArray = JSON.parse(authors);
         
         const submissionId = `SUB-${Date.now()}`;
         console.log(`[SUBMIT] --- Starting submission for Application ID: ${applicationId} ---`);
@@ -339,20 +573,48 @@ app.post('/api/submit',
             }
         }
 
-        // --- Step 2: Generate PDF from the text editor content ---
-        console.log('[SUBMIT] Generating PDF...');
+        // --- Step 2: Generate PDF with submission details ---
+        console.log('[SUBMIT] Generating summary PDF...');
         const tempDir = isProduction ? '/tmp' : 'uploads';
         if (!isProduction) fs.mkdirSync(tempDir, { recursive: true });
         
-        generatedPdfPath = path.join(tempDir, `generated-summary-${applicationId}.pdf`);
-        const fullTextForPdf = `Author Details:\n${authorDetails}\n\nKeywords:\n${keywords}\n\nFull Text:\n${submissionText}`;
+        generatedPdfPath = path.join(tempDir, `summary-${applicationId}.pdf`);
         
         const pdfDoc = new PDFDocument({ margin: 72 });
         const stream = fs.createWriteStream(generatedPdfPath);
         pdfDoc.pipe(stream);
-        pdfDoc.fontSize(18).font('Helvetica-Bold').text(title, { align: 'center' });
-        pdfDoc.fontSize(12).font('Helvetica').text(`Application ID: ${applicationId}`, { align: 'center' }).moveDown(2);
-        pdfDoc.font('Helvetica').text(fullTextForPdf, { align: 'justify' });
+        
+        // Title
+        pdfDoc.fontSize(20).font('Helvetica-Bold').text(paperTitle, { align: 'center' });
+        pdfDoc.moveDown(0.5);
+        
+        // Application ID
+        pdfDoc.fontSize(12).font('Helvetica').text(`Application ID: ${applicationId}`, { align: 'center' });
+        pdfDoc.moveDown(0.5);
+        
+        // Theme
+        pdfDoc.fontSize(14).font('Helvetica-Bold').text(`Theme: ${paperTheme}`, { align: 'center' });
+        pdfDoc.moveDown(2);
+        
+        // Authors Section
+        pdfDoc.fontSize(16).font('Helvetica-Bold').text('Authors', { underline: true });
+        pdfDoc.moveDown(1);
+        
+        authorsArray.forEach((author, index) => {
+            pdfDoc.fontSize(12).font('Helvetica-Bold').text(`Author ${index + 1}:`, { continued: false });
+            pdfDoc.font('Helvetica').text(`Name: ${author.name}`);
+            pdfDoc.text(`Email: ${author.email}`);
+            pdfDoc.text(`Affiliation: ${author.affiliation}`);
+            pdfDoc.moveDown(0.8);
+        });
+        
+        pdfDoc.moveDown(1);
+        
+        // Keywords
+        pdfDoc.fontSize(16).font('Helvetica-Bold').text('Keywords', { underline: true });
+        pdfDoc.moveDown(0.5);
+        pdfDoc.fontSize(12).font('Helvetica').text(keywords);
+        
         pdfDoc.end();
         
         await new Promise((resolve, reject) => {
@@ -361,28 +623,38 @@ app.post('/api/submit',
         });
         
         const generatedPdfContent = fs.readFileSync(generatedPdfPath);
-        console.log("[SUBMIT] ✅ Generated PDF created successfully.");
+        console.log("[SUBMIT] ✅ Summary PDF created successfully.");
 
-        // --- Step 3: Upload all files to the new Dropbox folder ---
-        console.log(`[SUBMIT] Uploading 3 files to Dropbox folder: ${dropboxFolder}`);
+        // --- Step 3: Upload all files to Dropbox ---
+        console.log(`[SUBMIT] Uploading files to Dropbox folder: ${dropboxFolder}`);
+
+        // Determine the paper file extension based on format
+        const paperFileExtension = submissionFormat === 'latex' ? '.pdf' : '.docx';
+        const paperFileName = `paper${paperFileExtension}`;
 
         const uploadPromises = [
+            // Generated summary PDF
             dbx.filesUpload({ 
-                path: `${dropboxFolder}/generated-pdf.pdf`, 
+                path: `${dropboxFolder}/submission-summary.pdf`, 
                 contents: generatedPdfContent 
             }),
+            // Paper file (PDF or DOCX)
             dbx.filesUpload({ 
-                path: `${dropboxFolder}/uploaded-pdf.pdf`, 
-                contents: uploadedPdfFile.buffer 
+                path: `${dropboxFolder}/${paperFileName}`, 
+                contents: paperFile.buffer 
             }),
+            // Supplementary materials ZIP
             dbx.filesUpload({ 
-                path: `${dropboxFolder}/uploaded-doc${path.extname(uploadedDocFile.originalname)}`, 
-                contents: uploadedDocFile.buffer 
+                path: `${dropboxFolder}/supplementary-materials.zip`, 
+                contents: supplementaryZip.buffer 
             })
         ];
         
         await Promise.all(uploadPromises);
         console.log(`[SUBMIT] ✅ All files successfully uploaded to Dropbox.`);
+        console.log(`[SUBMIT]    - submission-summary.pdf`);
+        console.log(`[SUBMIT]    - ${paperFileName}`);
+        console.log(`[SUBMIT]    - supplementary-materials.zip`);
         
         console.log(`[SUBMIT] ✅ Submission complete! Submission ID: ${submissionId}`);
         res.json({ success: true, submissionId });
@@ -394,7 +666,7 @@ app.post('/api/submit',
         // --- Step 4: Clean up temporary file ---
         if (generatedPdfPath && fs.existsSync(generatedPdfPath)) {
             fs.unlinkSync(generatedPdfPath);
-            console.log("[SUBMIT] ✅ Temporary generated PDF cleaned up.");
+            console.log("[SUBMIT] ✅ Temporary PDF cleaned up.");
         }
     }
 });
