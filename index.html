@@ -174,13 +174,13 @@
 <body>
 
     <div class="main-container">
-        <h1>Camera-Ready Submission Portal</h1>
+        <h1>RIC 2025 - Full Paper Submission Portal</h1>
 
         <!-- SCREEN 1: ID VERIFICATION GATE -->
         <div id="id-gate" class="container visible">
             <h3>Step 1: Verify Your Application ID</h3>
             <div class="form-group">
-                <label for="applicationIdInput">Enter your Application ID</label>
+                <label for="applicationIdInput">Enter your Application ID(sent via acceptance mail)</label>
                 <input type="text" id="applicationIdInput" placeholder="e.g., RIC172d49e">
             </div>
             <button onclick="checkId()">Proceed</button>
@@ -189,7 +189,7 @@
 
         <!-- SCREEN 2: MAIN SUBMISSION FORM -->
         <form id="submission-form" class="container">
-            <h3>Step 2: Submit Your Final Paper</h3>
+            <h3>Step 2: Submit Your Full Paper</h3>
             
             <!-- Application ID (readonly) -->
             <div class="form-group">
@@ -223,7 +223,7 @@
             <!-- Keywords -->
             <h4>Keywords (Max 6)</h4>
             <div class="form-group">
-                <label for="keywords">Enter keywords separated by semicolons (;)</label>
+                <label for="keywords">Enter (abstract)keywords separated by semicolons (;)</label>
                 <input type="text" id="keywords" name="keywords" placeholder="keyword one; keyword two; keyword three" onkeyup="validateForm()">
                 <p id="keyword-count" class="error">Keywords: 0 / 6</p>
             </div>
@@ -291,7 +291,7 @@
         <!-- SCREEN 3: CONFIRMATION MESSAGE -->
         <div id="confirmation-screen" class="container">
             <h2 class="success">✅ Submission Successful!</h2>
-            <p>Thank you. Your camera-ready paper has been received. Your submission ID is <strong id="submission-id"></strong>.</p>
+            <p>Thank you. Your Full paper has been received. Your submission ID is <strong id="submission-id"></strong>.</p>
         </div>
     </div>
 
