@@ -17,7 +17,6 @@
             padding: 20px;
             box-sizing: border-box;
         }
-
         .main-container {
             background-color: #103a6e;
             padding: 40px;
@@ -26,13 +25,10 @@
             width: 100%;
             max-width: 900px;
         }
-
         .container { display: none; }
         .visible { display: block; }
-
         .form-group { margin-bottom: 25px; }
         label { font-weight: bold; display: block; margin-bottom: 8px; color: #ffd700; }
-        
         input, select, textarea {
             width: 100%;
             padding: 12px;
@@ -44,15 +40,12 @@
             color: #f0f0f0;
             transition: border-color 0.3s, box-shadow 0.3s;
         }
-
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #ffd700;
             box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
-
         input[readonly] { background-color: #082548; cursor: not-allowed; }
-        
         button {
             background-color: #ffd700;
             color: #0a2f5a;
@@ -65,24 +58,18 @@
             transition: background-color 0.2s, opacity 0.2s;
             margin-top: 10px;
         }
-
         button:hover { background-color: #e6c300; }
         button:disabled { background-color: #555; color: #999; cursor: not-allowed; opacity: 0.6; }
-        
         .error { color: #ff8a80; font-weight: normal; }
         .success { color: #b9f6ca; }
-
         hr { border: 0; border-top: 1px solid #2a528a; margin: 30px 0; }
-        
         h1 {
             color: #ffffff;
             border-bottom: 2px solid #ffd700;
             padding-bottom: 10px;
             text-align: center;
         }
-
         h3, h4 { color: #f0f0f0; }
-
         input[type="file"] { display: none; }
         .file-upload-label {
             background-color: #2a528a;
@@ -100,7 +87,6 @@
             font-style: italic;
             font-size: 14px;
         }
-
         .author-entry {
             background-color: #0a2f5a;
             padding: 20px;
@@ -108,13 +94,11 @@
             margin-bottom: 20px;
             border: 1px solid #2a528a;
         }
-
         .author-entry h5 {
             color: #ffd700;
             margin-top: 0;
             margin-bottom: 15px;
         }
-
         .remove-author-btn {
             background-color: #ff4444;
             color: white;
@@ -122,26 +106,14 @@
             font-size: 14px;
             margin-top: 10px;
         }
-
-        .remove-author-btn:hover {
-            background-color: #cc0000;
-        }
-
-        .add-author-btn {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .add-author-btn:hover {
-            background-color: #45a049;
-        }
-
+        .remove-author-btn:hover { background-color: #cc0000; }
+        .add-author-btn { background-color: #4CAF50; color: white; }
+        .add-author-btn:hover { background-color: #45a049; }
         .format-choice {
             display: flex;
             gap: 20px;
             margin-top: 15px;
         }
-
         .format-option {
             flex: 1;
             background-color: #0a2f5a;
@@ -152,23 +124,19 @@
             transition: all 0.3s;
             text-align: center;
         }
-
         .format-option:hover {
             border-color: #ffd700;
             transform: translateY(-2px);
         }
-
         .format-option.selected {
             border-color: #ffd700;
             background-color: #1e487e;
         }
-
-        .format-option h4 {
-            margin-top: 0;
-            color: #ffd700;
-        }
-
+        .format-option h4 { margin-top: 0; color: #ffd700; }
         #keyword-count { margin-top: 8px; font-size: 14px; text-align: right; }
+        .radio-group { display: flex; align-items: center; gap: 15px; }
+        .radio-group input { width: auto; }
+        .radio-group label { margin-bottom: 0; color: #f0f0f0; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -176,80 +144,78 @@
     <div class="main-container">
         <h1>RIC 2025 - Full Paper Submission Portal</h1>
 
-        <!-- SCREEN 1: ID VERIFICATION GATE -->
         <div id="id-gate" class="container visible">
-            <h3>Step 1: Verify Your Application ID</h3>
+            <h3>Step 1: Verify Your RIC ID</h3>
             <div class="form-group">
-                <label for="applicationIdInput">Enter your Application ID(sent via acceptance mail)</label>
+                <label for="applicationIdInput">Enter your Application ID (sent via acceptance mail)</label>
                 <input type="text" id="applicationIdInput" placeholder="e.g., RIC172d49e">
             </div>
             <button onclick="checkId()">Proceed</button>
             <p id="gate-error" class="error"></p>
         </div>
 
-        <!-- SCREEN 2: MAIN SUBMISSION FORM -->
         <form id="submission-form" class="container">
             <h3>Step 2: Submit Your Full Paper</h3>
             
-            <!-- Application ID (readonly) -->
             <div class="form-group">
-                <label>Application ID</label>
+                <label>RIC ID</label>
                 <input type="text" id="applicationId" name="applicationId" readonly>
             </div>
 
             <hr>
             
-            <!-- Paper Details -->
             <h4>Paper Information</h4>
             <div class="form-group">
                 <label for="paperTitle">Paper Title*</label>
-                <input type="text" id="paperTitle" name="paperTitle" required placeholder="Enter the title of your paper">
+                <input type="text" id="paperTitle" name="paperTitle" required placeholder="Enter the title of your paper" oninput="validateForm()">
             </div>
 
             <div class="form-group">
                 <label for="paperTheme">Paper Theme*</label>
-                <input type="text" id="paperTheme" name="paperTheme" required placeholder="Enter the theme of your paper">
+                <select id="paperTheme" name="paperTheme" required onchange="validateForm()">
+                    <option value="" disabled selected>-- Select a Theme --</option>
+                    <option value="Advanced chemical-driven Materials Innovation and Manufacturing">Advanced chemical-driven Materials Innovation and Manufacturing</option>
+                    <option value="Technology for Society">Technology for Society</option>
+                    <option value="Intelligent Technologies and Systems">Intelligent Technologies and Systems</option>
+                    <option value="Recent Developments in Biotechnology">Recent Developments in Biotechnology</option>
+                </select>
             </div>
 
             <hr>
 
-            <!-- Authors Section -->
             <h4>Author Details</h4>
+            <p style="color: #ccc; font-size: 14px; margin-bottom: 20px;">Please select one author as the corresponding author.</p>
             <div id="authors-container"></div>
             <button type="button" class="add-author-btn" onclick="addAuthor()">+ Add Author</button>
 
             <hr>
 
-            <!-- Keywords -->
             <h4>Keywords (Max 6)</h4>
             <div class="form-group">
-                <label for="keywords">Enter (abstract)keywords separated by semicolons (;)</label>
-                <input type="text" id="keywords" name="keywords" placeholder="keyword one; keyword two; keyword three" onkeyup="validateForm()">
+                <label for="keywords">Enter (abstract) keywords separated by semicolons (;)*</label>
+                <input type="text" id="keywords" name="keywords" placeholder="keyword one; keyword two; keyword three" oninput="validateForm()">
                 <p id="keyword-count" class="error">Keywords: 0 / 6</p>
             </div>
 
             <hr>
 
-            <!-- Format Selection -->
             <h4>Submission Format*</h4>
-            <p style="color: #ccc; font-size: 14px;">Choose your submission format</p>
+            <p style="color: #ccc; font-size: 14px;">Choose your submission format.</p>
             <div class="format-choice">
-                <div class="format-option" onclick="selectFormat('latex')">
+                <div class="format-option" onclick="selectFormat('latex', event)">
                     <h4>LaTeX</h4>
                     <p>PDF + ZIP of supplementary materials</p>
                 </div>
-                <div class="format-option" onclick="selectFormat('doc')">
+                <div class="format-option" onclick="selectFormat('doc', event)">
                     <h4>Document</h4>
                     <p>DOCX + ZIP of supplementary materials</p>
                 </div>
             </div>
             <input type="hidden" id="selectedFormat" name="selectedFormat">
 
-            <!-- File Upload Section (Dynamic based on format) -->
             <div id="file-upload-section" style="display: none; margin-top: 30px;">
                 <h4>File Uploads</h4>
                 
-                <!-- LaTeX Files -->
                 <div id="latex-uploads" style="display: none;">
                     <div class="form-group">
                         <label for="latexPdf-input">Upload Paper PDF*</label>
@@ -258,14 +224,13 @@
                         <span id="latexPdfName" class="file-name">No file selected.</span>
                     </div>
                     <div class="form-group">
-                        <label for="latexZip-input">Upload Supplementary Materials (ZIP)*</label>
+                        <label for="latexZip-input">Upload the downloaded latex (ZIP)*</label>
                         <label for="latexZip-input" class="file-upload-label">Choose ZIP</label>
                         <input type="file" id="latexZip-input" name="latexZip" accept=".zip" onchange="updateFileNameAndValidate('latexZip-input', 'latexZipName')">
                         <span id="latexZipName" class="file-name">No file selected.</span>
                     </div>
                 </div>
 
-                <!-- DOC Files -->
                 <div id="doc-uploads" style="display: none;">
                     <div class="form-group">
                         <label for="docFile-input">Upload Paper Document (DOCX)*</label>
@@ -274,7 +239,7 @@
                         <span id="docFileName" class="file-name">No file selected.</span>
                     </div>
                     <div class="form-group">
-                        <label for="docZip-input">Upload Supplementary Materials (ZIP)*</label>
+                        <label for="docZip-input">Upload Supplementary Materials (ZIP) - Optional</label>
                         <label for="docZip-input" class="file-upload-label">Choose ZIP</label>
                         <input type="file" id="docZip-input" name="docZip" accept=".zip" onchange="updateFileNameAndValidate('docZip-input', 'docZipName')">
                         <span id="docZipName" class="file-name">No file selected.</span>
@@ -288,7 +253,6 @@
             <p id="form-message"></p>
         </form>
         
-        <!-- SCREEN 3: CONFIRMATION MESSAGE -->
         <div id="confirmation-screen" class="container">
             <h2 class="success">✅ Submission Successful!</h2>
             <p>Thank you. Your Full paper has been received. Your submission ID is <strong id="submission-id"></strong>.</p>
@@ -315,56 +279,92 @@
         authorDiv.innerHTML = `
             <h5>Author ${authorCount}</h5>
             <div class="form-group">
-                <label for="authorName-${authorCount}">Full Name*</label>
-                <input type="text" id="authorName-${authorCount}" class="author-field" placeholder="Author Full Name" required>
+                <label>Corresponding Author?*</label>
+                <div class="radio-group" onchange="validateForm()">
+                    <input type="radio" id="corr-yes-${authorCount}" name="corresponding-author" value="${authorCount}" required>
+                    <label for="corr-yes-${authorCount}">Yes</label>
+                    <input type="radio" id="corr-no-${authorCount}" name="corresponding-author" value="no-${authorCount}">
+                    <label for="corr-no-${authorCount}">No</label>
+                </div>
             </div>
             <div class="form-group">
-                <label for="authorAffiliation-${authorCount}">Affiliation*</label>
-                <input type="text" id="authorAffiliation-${authorCount}" class="author-field" placeholder="Department, Institution, City, Country" required>
+                <label for="authorName-${authorCount}">Full Name*</label>
+                <input type="text" id="authorName-${authorCount}" class="author-field" placeholder="Author Full Name" required oninput="validateForm()">
             </div>
             <div class="form-group">
                 <label for="authorEmail-${authorCount}">Email*</label>
-                <input type="email" id="authorEmail-${authorCount}" class="author-field" placeholder="author@example.com" required>
+                <input type="email" id="authorEmail-${authorCount}" class="author-field" placeholder="author@example.com" required oninput="validateForm()">
+            </div>
+            <div class="form-group">
+                <label for="authorDepartment-${authorCount}">Department*</label>
+                <input type="text" id="authorDepartment-${authorCount}" class="author-field" placeholder="e.g., Department of Computer Science" required oninput="validateForm()">
+            </div>
+            <div class="form-group">
+                <label for="authorInstitution-${authorCount}">Institution*</label>
+                <input type="text" id="authorInstitution-${authorCount}" class="author-field" placeholder="e.g., University of Technology" required oninput="validateForm()">
+            </div>
+            <div class="form-group">
+                <label for="authorCityCountry-${authorCount}">City, Country*</label>
+                <input type="text" id="authorCityCountry-${authorCount}" class="author-field" placeholder="e.g., New Delhi, India" required oninput="validateForm()">
             </div>
             ${authorCount > 1 ? `<button type="button" class="remove-author-btn" onclick="removeAuthor(${authorCount})">Remove Author</button>` : ''}
         `;
         container.appendChild(authorDiv);
+        
+        // If this is the first author, automatically select them as corresponding author
+        if (authorCount === 1) {
+            document.getElementById(`corr-yes-1`).checked = true;
+        } else {
+             document.getElementById(`corr-no-${authorCount}`).checked = true;
+        }
+
         validateForm();
     }
 
     function removeAuthor(id) {
         const authorDiv = document.getElementById(`author-${id}`);
         if (authorDiv) {
+            // If the removed author was the corresponding one, and it's not the last one, prompt to select a new one.
+            const isCorresponding = document.getElementById(`corr-yes-${id}`).checked;
+            
             authorDiv.remove();
+            
+            if (isCorresponding && document.querySelectorAll('.author-entry').length > 0) {
+                 // Check if any other author is now selected as corresponding. If not, make the first one corresponding.
+                const anyCorresponding = document.querySelector('input[name="corresponding-author"]:checked');
+                if (!anyCorresponding || !anyCorresponding.id.startsWith('corr-yes')) {
+                    const firstAuthorRadio = document.querySelector('input[id^="corr-yes-"]');
+                    if(firstAuthorRadio) firstAuthorRadio.checked = true;
+                }
+            }
+             authorCount--;
             validateForm();
         }
-        authorCount--;
     }
 
-    function selectFormat(format) {
+    function selectFormat(format, event) {
         selectedFormat = format;
         document.getElementById('selectedFormat').value = format;
         
-        // Update UI
         document.querySelectorAll('.format-option').forEach(opt => opt.classList.remove('selected'));
-        event.target.closest('.format-option').classList.add('selected');
+        event.currentTarget.classList.add('selected');
         
-        // Show file upload section
         document.getElementById('file-upload-section').style.display = 'block';
         
-        // Show/hide appropriate upload fields
         if (format === 'latex') {
             document.getElementById('latex-uploads').style.display = 'block';
             document.getElementById('doc-uploads').style.display = 'none';
-            // Clear doc files
             document.getElementById('docFile-input').value = '';
             document.getElementById('docZip-input').value = '';
+            updateFileNameAndValidate('docFile-input', 'docFileName');
+            updateFileNameAndValidate('docZip-input', 'docZipName');
         } else {
             document.getElementById('latex-uploads').style.display = 'none';
             document.getElementById('doc-uploads').style.display = 'block';
-            // Clear latex files
             document.getElementById('latexPdf-input').value = '';
             document.getElementById('latexZip-input').value = '';
+            updateFileNameAndValidate('latexPdf-input', 'latexPdfName');
+            updateFileNameAndValidate('latexZip-input', 'latexZipName');
         }
         
         validateForm();
@@ -384,29 +384,28 @@
     function validateForm() {
         let isValid = true;
 
+        // Check paper title and theme
+        if (!document.getElementById('paperTitle').value.trim()) isValid = false;
+        if (!document.getElementById('paperTheme').value) isValid = false;
+
         // Check keywords (1-6)
         const keywords = keywordsInput.value.trim();
         const keywordCount = keywords.length > 0 ? keywords.split(';').filter(k => k.trim() !== '').length : 0;
         keywordCountEl.textContent = `Keywords: ${keywordCount} / 6`;
         const isKeywordCountValid = keywordCount > 0 && keywordCount <= 6;
         keywordCountEl.className = isKeywordCountValid ? 'success' : 'error';
-        isValid = isValid && isKeywordCountValid;
+        if (!isKeywordCountValid) isValid = false;
 
-        // Check if at least one author exists
+        // Check if at least one author exists and one is corresponding author
         const authors = document.querySelectorAll('.author-entry');
-        isValid = isValid && authors.length > 0;
+        const correspondingAuthor = document.querySelector('input[name="corresponding-author"]:checked');
+        if (authors.length === 0) isValid = false;
+        if (!correspondingAuthor || !correspondingAuthor.id.startsWith('corr-yes')) isValid = false;
 
         // Check all author fields are filled
-        const authorFields = document.querySelectorAll('.author-field');
-        authorFields.forEach(field => {
+        document.querySelectorAll('.author-field').forEach(field => {
             if (!field.value.trim()) isValid = false;
         });
-
-        // Check paper title and theme
-        const paperTitle = document.getElementById('paperTitle');
-        const paperTheme = document.getElementById('paperTheme');
-        if (paperTitle) isValid = isValid && paperTitle.value.trim() !== '';
-        if (paperTheme) isValid = isValid && paperTheme.value.trim() !== '';
 
         // Check format selection and files
         if (!selectedFormat) {
@@ -415,11 +414,11 @@
             if (selectedFormat === 'latex') {
                 const pdfFile = document.getElementById('latexPdf-input').files.length > 0;
                 const zipFile = document.getElementById('latexZip-input').files.length > 0;
-                isValid = isValid && pdfFile && zipFile;
+                if (!pdfFile || !zipFile) isValid = false;
             } else if (selectedFormat === 'doc') {
                 const docFile = document.getElementById('docFile-input').files.length > 0;
-                const zipFile = document.getElementById('docZip-input').files.length > 0;
-                isValid = isValid && docFile && zipFile;
+                // ZIP is optional for doc, so we don't validate it
+                if (!docFile) isValid = false;
             }
         }
 
@@ -445,7 +444,6 @@
             document.getElementById('applicationId').value = data.applicationId;
             idGate.classList.remove('visible');
             submissionForm.classList.add('visible');
-            // Initialize with one author
             addAuthor();
         } catch (error) {
             errorEl.textContent = `Error: ${error.message}`;
@@ -463,14 +461,17 @@
         formData.append('paperTitle', document.getElementById('paperTitle').value);
         formData.append('paperTheme', document.getElementById('paperTheme').value);
         
-        // Collect all authors
+        const correspondingAuthorId = document.querySelector('input[name="corresponding-author"]:checked')?.value;
         const authors = [];
         document.querySelectorAll('.author-entry').forEach((entry, index) => {
             const id = entry.id.split('-')[1];
             authors.push({
                 name: document.getElementById(`authorName-${id}`).value,
-                affiliation: document.getElementById(`authorAffiliation-${id}`).value,
-                email: document.getElementById(`authorEmail-${id}`).value
+                email: document.getElementById(`authorEmail-${id}`).value,
+                department: document.getElementById(`authorDepartment-${id}`).value,
+                institution: document.getElementById(`authorInstitution-${id}`).value,
+                cityCountry: document.getElementById(`authorCityCountry-${id}`).value,
+                isCorresponding: id === correspondingAuthorId
             });
         });
         formData.append('authors', JSON.stringify(authors));
@@ -478,13 +479,14 @@
         formData.append('keywords', document.getElementById('keywords').value);
         formData.append('submissionFormat', selectedFormat);
         
-        // Append files based on format
         if (selectedFormat === 'latex') {
             formData.append('paperFile', document.getElementById('latexPdf-input').files[0]);
             formData.append('supplementaryZip', document.getElementById('latexZip-input').files[0]);
         } else {
             formData.append('paperFile', document.getElementById('docFile-input').files[0]);
-            formData.append('supplementaryZip', document.getElementById('docZip-input').files[0]);
+            if (document.getElementById('docZip-input').files.length > 0) {
+                formData.append('supplementaryZip', document.getElementById('docZip-input').files[0]);
+            }
         }
         
         try {
@@ -501,13 +503,9 @@
         } catch(error) {
             formMessage.textContent = `Error: ${error.message}`;
             formMessage.className = 'error';
-            validateForm();
+            validateForm(); // Re-enable button if submission fails
         }
     });
-
-    // Add event listeners to paper fields
-    document.getElementById('paperTitle')?.addEventListener('input', validateForm);
-    document.getElementById('paperTheme')?.addEventListener('input', validateForm);
 </script>
 </body>
 </html>
